@@ -9,8 +9,15 @@
 #ifndef CONSTANTES_H
 #define	CONSTANTES_H
 
+#define NULL (void*) 0
 
 #define _XTAL_FREQ 4000000
+
+#define BOTON_COMPRAR RA1
+#define BOTON_ELIMINAR RA2
+
+#define LED_VERDE RA3
+#define LED_ROJO RA4
 
 #define CR 0x0D
 #define LF 0x0A
@@ -23,7 +30,7 @@
 
 //TT$TT$TT$TT$...
 
-#define MAX_ITEMS 30
+#define MAX_ITEMS 99
 #define MAX_MEMORY_BYTES MAX_ITEMS * 3
 
 //----STRUCT----//
