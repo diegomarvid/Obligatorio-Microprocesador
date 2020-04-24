@@ -89,7 +89,7 @@ unsigned char eeprom_read(unsigned char direccion){
     EECON1bits.EEPGD = 0;   //para acceder a la memoria EEPROM PIC
     EECON1bits.RD = 1;      //habilita la lectura de la EEPROM PIC
     return EEDATA;        //en el registro EEDATA se encuentra el dato
-                          //leido, la función retorna el dato leido
+                          //leido, la funciÃ³n retorna el dato leido
 }
 
 //Devuelve precio o 0 si error
@@ -281,6 +281,10 @@ int main(void) {
     
     setup();
     
+    //Variables para almacenar el resultado de las condiciones. 
+    int condicion_elemento_repetido = FALSE;
+    int condicion_precio_max = FALSE;
+    
     
     while(TRUE) {
         
@@ -289,55 +293,37 @@ int main(void) {
         if(dato_recibido == TRUE) {
             
             precio_actual = check_tt(NULL);
-                        
-            if( precio_actual != 0 && check_s() ) {
-                
-                if(precio_total + precio_actual < 999) {
+            condicion_elemento_repetido = precio_actual != 0 && check_s() == FALSE;
+            condicion_precio_max = precio_total + precio_actual < 999;
                     
-                    if(agregar_lista() == TRUE) {
-                        
-                        
-                        //Actualizo precio y display
-                        precio_total += precio_actual;
-                        display_numero(precio_total);
-                        cantidad_items++;
-                        
-                        //Led verde.
-                        
-                        RA3 = 1;
-                        __delay_ms(500);
-                        RA3 = 0;
-                        __delay_ms(500);
-                        
-                    } else {
-                        
-                        //Led rojo de error
-                        RA4 = 1;
-                        __delay_ms(500);
-                        RA4 = 0;
-                        __delay_ms(500);
-                        
-                    }
+            if(condicion_elemento_repetido && condicion_precio_max && agregar_lista()) {
                 
-                    
-                } else {
-                    //Led rojo de error
-                    RA4 = 1;
-                    __delay_ms(500);
-                    RA4 = 0;
-                    
-                }
                 
+                //Actualizo precio y display
+                precio_total += precio_actual;
+                //display_numero(precio_total);
+                cantidad_items++;
+                
+                //Led verde.
+                RA3 = 1;
+                __delay_ms(500);
+                RA3 = 0;
+                __delay_ms(500);
+
                 
             }else {
+                
                 //Led rojo de error
                 RA4 = 1;
                 __delay_ms(500);
-                RA4 = 0;   
-            }
+                RA4 = 0;
+            }    
             
             dato_recibido = FALSE;
-        }
+            
+                
+            
+        }        
         
         //-------LIMPIAR-------//
         
