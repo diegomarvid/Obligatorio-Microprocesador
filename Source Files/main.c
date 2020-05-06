@@ -123,12 +123,12 @@ int check_tt(Codigo *codigo) {
    //Si recibe NULL entonces la funcion actua con el dato obtenido de serial.
     if(codigo ==  (Codigo*) NULL) {
     
-        TT=(dato[1]-48)+(dato[0]-48)*10;
+        TT = (dato[1]-48) + (dato[0]-48) * 10;
     
     //De lo contrario realiza la operacion con el codigo que se le pasa a la funcion.
     } else{
         
-        TT=(codigo->dato[1]-48)+(codigo->dato[0]-48)*10;
+        TT = (codigo->dato[1]-48) + (codigo->dato[0]-48) * 10;
         
     }    
     
@@ -149,12 +149,12 @@ int check_rep(void) {
     //el elemento se encuentra repetido.
     
    //Recorro el carrito
-    for(int t= 0; t< cantidad_items; t++){
+    for(int t = 0; t < cantidad_items; t++){
        
       //Comparo posicion a posicion el nuevo codigo con los codigos que estan ingresados en el carrito.
         for(int j = 0; j < 7; j++) {
             
-            if( dato[j] == lista[t].dato[j]) {
+            if( dato[j] == lista[t].dato[j] ) {
                 h++;   
             }
             
@@ -272,59 +272,6 @@ void animacion_pagar(){
     
 }   
 
-//--------------------------------------GENERAR DATO-------------------------------------------------------//
-char d1[8] = {48,49,79,84,84,69,46,36};
-char d2[8] = {48,50,86,73,73,67,46,36};
-char d3[8] = {48,51,79,84,84,69,46,36};
-char d4[8] = {48,52,86,73,73,67,46,36};
-char d5[8] = {48,55,86,73,73,67,46,36};
-
-void generar_dato(int r){
-        
-        if(r%5 == 0){
-
-            for (int j = 0; j < 8; j++){
-                
-                dato[j]=d1[j];
-            
-            }
-            
-        }else if (r%5 == 1){
-            
-            for (int j = 0; j < 8; j++){
-                
-                dato[j]=d2[j];
-            
-            }            
-            
-        }else if (r%5 == 2){
-            
-            for (int j = 0; j < 8; j++){
-                
-                dato[j]=d3[j];
-            
-            }            
-            
-        }   else  if (r%5 == 3){
-            
-            for (int j = 0; j < 8; j++){
-                
-                dato[j]=d4[j];
-            
-            }  
-            
-        } else if(r%5 == 4){
-	   
-	   for (int j = 0; j < 8; j++){
-                
-                dato[j]=d5[j];
-            
-            }  
-	   
-	   }
-	
-    
-}    
 //-----------------------------------------------------------------------------------------------------------------//
 
     
@@ -339,7 +286,7 @@ void setup(void) {
     //Unidades
     TRISD = 0x0;
     
-      ADCON1 = 0b0111;
+    ADCON1 = 0b0111;
    
     //Botones
     TRISA = 0b0100110;
@@ -352,6 +299,7 @@ void setup(void) {
     
     //SPEN && CREN
     RCSTA = 0b10010000;
+    TXSTA = 0b00100110;
     
     //Velocidad de transimision de baudios
     SPBRG = 25; //9615 baudios/s
@@ -371,26 +319,18 @@ int main(void) {
     
     setup();
     //AUXILIAR PARA GENERAR ITEMS
-    int r=0;
+    int r = 0;
     //----------//
      //Variables para almacenar el resultado de las condiciones. 
     int condicion_elemento_repetido = FALSE;
     int condicion_precio_max = FALSE;
     
     while(TRUE) {
-        
-       
-       
+ 
 	 //Si se obtiene un nuevo dato serial.
-        if(RA4 == TRUE) {
-	   //--------------AUXILIAR---------------------//
-	   while(RA4) {
-                
-            }
-            __delay_ms(50);
-            generar_dato(r);
-            //---------------------------------------------//
-	    
+      if(dato_recibido == TRUE) {
+	 
+           	    
 	    //Chequea si el item es valido, no esta repetido y su precio al ser sumado no supera los 99.9$
             precio_actual = check_tt(NULL);
             condicion_elemento_repetido = precio_actual != 0 && check_rep() == FALSE;
