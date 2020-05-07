@@ -32,7 +32,7 @@ int check_sum(void){
     int suma = 0;
     //Suma los primeros valores de ASCII->int
     for(int j = 0; j < 7; j++) {
-            suma += dato[j] - 0x30;          
+            suma += dato[j];          
     }
     //Retorna el resultado de igualar logigamente la suma de los 7 valores con el check_sum
     return (suma % 10 == dato[7] - 0x30);
