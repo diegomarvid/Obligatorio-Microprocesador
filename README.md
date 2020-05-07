@@ -1,5 +1,7 @@
 # Obligatorio Microprocesador
  Obligatorio para la materia Microprocesadores y Microcontroladores
+
+ Autores: Diego Marvid y Valentin Otte
  
  Se presenta el codigo C de una pistola de codigo de barras simulada en un PIC 16F877A. Para poder usarla se debe conectar la pata TX de este mismo PIC a la pata RX del PIC en el sistema. Dentro de la pistola se contienen 5 productos de prueba para usar en el escaneo dado.
  
