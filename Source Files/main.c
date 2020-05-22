@@ -1,41 +1,41 @@
 //Obligatorio 1 microprocesadores Diego Marvid y Valentin Otte.
 
-#include <xc.h>
-#include "constantes.h"
-
-__EEPROM_DATA(0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x0A); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-//__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-
-
-//Obligatorio 1 microprocesadores Diego Marvid y Valentin Otte.
 
 #include <xc.h>
 #include "constantes.h"
+#include "cmd.h"	
+
+
+
+__EEPROM_DATA(0xFF,0x0A,0xFF,0xFF,0xFF,0x00,0x00,0x0A); //fill first 8 locations
+__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
+__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
+//__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locatio
+
+
 
 
 
 //---------------------------CHECK SUM--------------------------------//
 //Chequea que el dato entrate cumpla con el checksum.
-int check_sum(void){
+int check_sum(char *s){
     
     int suma = 0;
     //Suma los primeros valores de ASCII->int
     for(int j = 0; j < 7; j++) {
-            suma += dato[j];          
+            suma += s[j];          
     }
     //Retorna el resultado de igualar logigamente la suma de los 7 valores con el check_sum
-    return (suma % 10 == dato[7] - 0x30);
+    return (suma % 10 == s[7] - 0x30);
     
     
 }
@@ -50,57 +50,98 @@ void limpiar_dato(void){
     
 }
 
-
 //-------------------- INTERRUPTION MANAGER--------------------------//
 void __interrupt () int_usart(void) {
     
  
- //Me fijo si la interrupcion es por Recepcion serial RX
- 
- if(PIR1bits.RCIF == TRUE) {
-  
-    //Verifico si llego el final del dato
-    if(RCREG == CR || RCREG == LF){
-        
-        //Si llego el final en la posicion correcta entonces el dato se recibio exitosamente
-        if(i == 8) {
-            
-	   
-	   //Reinicio el contador de posicion para la proxima lectura.
-            i = 0;
-	   
-            //Si cumple cheksum
-            if(check_sum() == TRUE){
-                dato_recibido = TRUE;
-            //Sino limpio dato y dato_recibido = FALSE
-            }else{              
-                limpiar_dato(); 
-            }    
-                  
-        } else {    
-	    //Reinicio el contador de posicion para la proxima lectura.
-            i = 0;
-            //Limpiar dato
-            limpiar_dato(); 
-        }
-        
-    }  
-    //Agrego el dato
-    else if( i < 8 ) {
-        
-        dato[i] = RCREG;
-        i++;
-        
-    //No es un enter en la posicion correcta ni un numero dentro de los 8 bytes    
-    } else {
-       //Reinicio el contador de posicion para la proxima lectura.
-        i = 0;
-        //Limpiar dato
-        limpiar_dato(); 
+    //Me fijo si la interrupcion es por Recepcion serial RX
+    if(PIR1bits.RCIF == TRUE) {
+       
+       if (i == 0){
+	  
+	  if( RCREG > 47 && RCREG < 58 ){
+	       es_cmd = FALSE;
+	  } else {
+	       es_cmd = TRUE;
+		
+	  }
+	  
+       }
+       
+       if (es_cmd == FALSE){
+	  
+	    //Verifico si llego el final del dato
+	     if(RCREG == CR || RCREG == LF){
+		 
+		 //Si llego el final en la posicion correcta entonces el dato se recibio exitosamente
+		 if(i == 8) {
+		     
+		    
+		    //Reinicio el contador de posicion para la proxima lectura.
+		     i = 0;
+		    
+		     //Si cumple cheksum
+		     if(check_sum(dato) == TRUE){
+			 dato_recibido = TRUE;
+		     //Sino limpio dato y dato_recibido = FALSE
+		     }else{              
+			 limpiar_dato(); 
+		     }    
+			   
+		 } else {    
+		     //Reinicio el contador de posicion para la proxima lectura.
+		     i = 0;
+		     //Limpiar dato
+		     limpiar_dato(); 
+		 }
+		 
+	     }  
+	     //Agrego el dato
+	     else if( i < 8 ) {
+		 
+		 dato[i] = RCREG;
+		 i++;
+		 
+	     //No es un enter en la posicion correcta ni un numero dentro de los 8 bytes    
+	     } else {
+		//Reinicio el contador de posicion para la proxima lectura.
+		 i = 0;
+		 //Limpiar dato
+		 limpiar_dato(); 
+	     }
+		   
+
+       }else{
+	  
+	  
+	  if (i < 8){
+	     
+	       if(RCREG == CR || RCREG == LF){
+		  
+		  if(TRUE == TRUE){
+		     cmd[i] = RCREG;
+		     cmd_recibido = TRUE;
+		     i = 0;
+		  }else{
+		    i = 0;
+		 //   limpiar_cmd();
+		  }  
+	       }else{
+		  cmd[i] = RCREG;
+		  i++;
+	       }  
+		 
+	  }else{
+	     i  = 0;
+	  //   limpiar_cmd(); 
+	  }  
+      }
+       
     }
-      
- }
-}
+
+} 
+
+
 
 
 //---------------------------------EEPROM READ-----------------------------------------//
@@ -111,6 +152,25 @@ unsigned char eeprom_read(unsigned char direccion){
     return EEDATA;        //en el registro EEDATA se encuentra el dato
 }
 
+//---------------------------------EEPROM READ-----------------------------------------//
+
+void eeprom_write(char Address, char Data)
+{
+  while(EECON1bits.WR);  // Waits Until Last Attempt To Write Is Finished
+  EEADR = Address;       // Writes The Addres To Which We'll Wite Our Data
+  EEDATA = Data;         // Write The Data To Be Saved
+  EECON1bits.EEPGD = 0;  // Cleared To Point To EEPROM Not The Program Memory
+  EECON1bits.WREN = 1;   // Enable The Operation !
+  INTCONbits.GIE = 0;    // Disable All Interrupts Untill Writting Data Is Done
+  EECON2 = 0x55;         // Part Of Writing Mechanism..
+  EECON2 = 0xAA;         // Part Of Writing Mechanism..
+  EECON1bits.WR = 1;     // Part Of Writing Mechanism..
+  INTCONbits.GIE = 1;    // Re-Enable Interrupts
+  EECON1bits.WREN = 0;   // Disable The Operation
+  EECON1bits.WR = 0;     // Ready For Next Writting Operation
+}
+  
+//------------------------------------------------------------------------------------------------------------//
 
 //----------------------------------------STOCK CHECK-----------------------------------------//
 //Chequea que el item sea parte del stock, devuelve precio o 0 si error.
@@ -221,9 +281,11 @@ void display_numero(int numero){
     int unidades = numero / 10;
     unidades = unidades % 10;
     
+    int decimas=numero-decenas*100-unidades*10;
+    
     //Asigno la representacion del numero en 7 segmentos al puerto correspondiente.     
-    PORTD = ~seg[unidades];
-    PORTB = ~seg[decenas];      
+    PORTD = ~seg[decimas];
+    PORTB = decenas+unidades*16;      
 }
 
 //----------REMOVE LAST ITEM---------------//
@@ -257,6 +319,7 @@ void eliminar_item(){
     
 }    
 
+
 //-------------CLOSE CART ANIMATION---------------//
 //Genera una animacion al momento de cerrar el carrito.
 void animacion_pagar(){
@@ -272,6 +335,60 @@ void animacion_pagar(){
     
 }   
 
+
+//------------------------------LOTES---------------------------------//
+int actualizar_lote( int precio){
+   
+   if(lote.cant_ventas < 255){
+      lote.precio_total += precio;
+      lote.cant_ventas++;
+      return TRUE;
+   }else {
+      return FALSE;
+   }  
+      
+   
+ }
+
+ 
+ //-----------------------LEDS----------------------------------//
+  void encender_verde(){
+    RA3=1;
+    __delay_ms(300);
+    RA3=0;
+    
+ }
+ 
+  void encender_rojo(){
+     
+     RA4=1;
+    __delay_ms(300);
+    RA4=0;
+    
+ }
+
+ 
+ 
+ void envia_caracter_usart(unsigned char caracter){
+    while(TXSTAbits.TRMT==0);// mientras el registro TSR esté lleno espera
+	TXREG = caracter;//cuando el el registro TSR está vacio se envia el caracter
+}
+void cmd_printf(const char *s) {
+   
+   int h = 0;
+   
+   
+   while(s[h] != 0 && h < CMD_SIZE) {
+	 
+      envia_caracter_usart(s[h]);
+      h++;
+      
+   }
+	 
+   
+}
+
+
 //-----------------------------------------------------------------------------------------------------------------//
 
     
@@ -286,16 +403,16 @@ void setup(void) {
     //Unidades
     TRISD = 0x0;
     
-    ADCON1 = 0b0111;
+    ADCON1 = 0b1110;
    
     //Botones
-    TRISA = 0b0100110;
+    TRISA = 0b00110;
     
     
     //----Serial----//
     
     TRISCbits.TRISC7 = ENTRADA; // Pin RX entrada digital
-    
+    TRISCbits.TRISC6 = 0;//pin TX como una salida digital
     
     //SPEN && CREN
     RCSTA = 0b10010000;
@@ -311,6 +428,9 @@ void setup(void) {
     
     display_numero(0);
     
+    lote.numero = 5;
+    lote.cant_ventas = 0;
+    lote.precio_total = 0;
     
 }
    
@@ -324,12 +444,15 @@ int main(void) {
      //Variables para almacenar el resultado de las condiciones. 
     int condicion_elemento_repetido = FALSE;
     int condicion_precio_max = FALSE;
-    
+  
+
+   
     while(TRUE) {
  
 	 //Si se obtiene un nuevo dato serial.
       if(dato_recibido == TRUE) {
 	 
+	     estado = ACTIVO;
            	    
 	    //Chequea si el item es valido, no esta repetido y su precio al ser sumado no supera los 99.9$
             precio_actual = check_tt(NULL);
@@ -339,10 +462,16 @@ int main(void) {
              //	Si cumplen todas las condiciones anteriores. 
             if(condicion_elemento_repetido && condicion_precio_max && agregar_lista()) {
              
+		  if(modo == DEBUG) {
+		     cmd_etiqueta();
+		     cmd_printf(respuesta);
+		  }
+	              
                 //Actualizo precio y display.
                 precio_total += precio_actual;
                 display_numero(precio_total);
                 cantidad_items++;
+	        
                 
                 //Led verde.
                 RA3 = 1;
@@ -374,6 +503,7 @@ int main(void) {
             __delay_ms(50);
             
             eliminar_item();
+	    
 	      
         }
         
@@ -385,15 +515,33 @@ int main(void) {
             }
             
             __delay_ms(50);
+	    
+	    if (actualizar_lote(precio_total) == FALSE){
+	       //PRENDO LED ROJO
+	       
+	    } else {
+	       if(modo == DEBUG){
+		  cmd_lote();
+		  cmd_printf(respuesta);
+	       }
+	        animacion_pagar();
+	    }
             
             //Reinicio el carrito.
             precio_total = 0;
             cantidad_items = 0;
             //Resetea el display.
-            display_numero(precio_total);           
-            animacion_pagar();
+            display_numero(precio_total);
+
+	     estado = ESPERA;
             
-        }
+        }else if(cmd_recibido == TRUE){  
+	        
+	       administrar_cmd();
+	       cmd_printf(respuesta);	
+	   
+		 cmd_recibido = FALSE;
+	} 
              
     }
     

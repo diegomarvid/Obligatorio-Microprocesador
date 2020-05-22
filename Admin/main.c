@@ -4,9 +4,10 @@
 ///////////////////////////////////////////////////////////////////
 
 #include <xc.h>
+ #include <stdio.h>
  
  #define _XTAL_FREQ 4000000
- #define CMD_SIZE 40
+ #define CMD_SIZE 30
  
 ///////////////////////////////////////////////
 //inicialización del módulo USART PIC modo asíncrono
@@ -56,60 +57,32 @@ void cmd_printf(const char *s) {
 
 #define CR 0x0D
 #define LF 0x0A
-char dato[9];
 
-const char d1[9] = "01PILAS4\r";
-const char d2[9] = "02JAMON1\r";
-const char d3[9] = "03CARNE0\r";
-const char d4[9] = "04VODKA3\r";
-const char d5[9] = "05ARROZ9\r";
+char cmd[CMD_SIZE];
 
-void generar_dato(int r){
+void generar_cmd(int r){
    
-	
-   
-        
-        if(r % 5 == 0){
-
-            for (int j = 0; j < 9; j++){
-                
-                dato[j] = d1[j];
-            
-            }
-            
-        }else if (r % 5 == 1){
-            
-            for (int j = 0; j < 9; j++){
-                
-                dato[j] = d2[j];
-            
-            }            
-            
-        }else if (r % 5 == 2){
-            
-            for (int j = 0; j < 9; j++){
-                
-                dato[j] = d3[j];
-            
-            }            
-            
-        }   else  if (r % 5 == 3){
-            
-            for (int j = 0; j < 9; j++){
-                
-                dato[j] = d4[j];
-            
-            }  
-            
-        } else if(r % 5 == 4){
-	   
-			for (int j = 0; j < 9; j++){
-                
-                dato[j] = d5[j];
-            
-            }  
-	   
-	   }
+	       if( r % 5 == 0 ) {
+		  
+		  sprintf( cmd, "+D\r" );
+		  
+	       } else if ( r % 5 == 1) {
+		  
+		  sprintf( cmd, "-D\r" );
+		  
+	       } else if ( r % 5 == 2) {
+		  
+		  sprintf( cmd, "?\r" );
+		  
+	       } else if ( r % 5 == 3) {
+		  
+		  sprintf( cmd, "+29=204\r" );
+		  
+	       } else if ( r % 5 == 4) {
+		  
+		  sprintf( cmd , "?V\r" );
+		  
+	       }
 	
     
 }    
@@ -127,11 +100,12 @@ int main(void) {
 	while(1) {
 		
 		if(RB1 == 1){
+		   
 			while(RB1);
 			
-			generar_dato(r);
+			generar_cmd(r);
 			
-			envia_cadena_usart(dato);
+			cmd_printf(cmd);
 			
 			r++;
 		}

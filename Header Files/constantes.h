@@ -1,3 +1,4 @@
+
 /* 
  * File:   constantes.h
  * Author: diegomarvid99@gmail.com
@@ -13,12 +14,6 @@
 
 #define _XTAL_FREQ 4000000
 
-#define BOTON_COMPRAR RA1
-#define BOTON_ELIMINAR RA2
-
-#define LED_VERDE RA3
-#define LED_ROJO RA4
-
 #define CR 0x0D
 #define LF 0x0A
 
@@ -33,7 +28,13 @@
 #define MAX_ITEMS 99
 #define MAX_MEMORY_BYTES MAX_ITEMS * 3
 
+//----------CMD------//
+#define CMD_SIZE 30
+
 //----STRUCT----//
+
+enum { SALIDA, ENTRADA };
+enum { FALSE, TRUE };
 
 typedef struct {
 
@@ -43,9 +44,15 @@ typedef struct {
 
 Codigo lista[MAX_CART];
 
+typedef struct {
 
-enum { SALIDA, ENTRADA };
-enum { FALSE, TRUE };
+   char cant_ventas;
+   char numero;
+   int precio_total; 
+
+} Lote;
+
+Lote lote;
 
 //Informacion serial
 
@@ -64,7 +71,21 @@ int dato_recibido = FALSE;
 int cantidad_items = 0;
 int precio_total = 0;
 int precio_actual = 0;
+ 
+ unsigned char cmd[8];
+ int cmd_recibido = FALSE;
+ int es_cmd = FALSE;
+ 
+char respuesta[CMD_SIZE];
 
+//Estado
+enum {ACTIVO, ESPERA};
+//Modo
+enum {NO_DEBUG, DEBUG};
 
+int estado = ESPERA;
+int modo = NO_DEBUG;
+
+float v = 9.0f;
 
 #endif	/* CONSTANTES_H */
