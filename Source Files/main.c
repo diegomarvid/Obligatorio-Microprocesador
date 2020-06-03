@@ -5,10 +5,13 @@
 #include "constantes.h"
 #include "cmd.h"	
 
+#define SBIT_PS1 5
+#define SBIT_PS0 4
 
 
-__EEPROM_DATA(0xFF,0x0A,0xFF,0xFF,0xFF,0x00,0x00,0x0A); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
+
+__EEPROM_DATA(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x0A); //fill first 8 locations
+__EEPROM_DATA(0x30,0x01,0xFF,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
@@ -16,13 +19,43 @@ __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
-__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-//__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locatio
+
+//__EEPROM_DATA(0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00); //fill first 8 locations
+//__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
+//__EEPROM_DATA(0x30,0x00,0x00,0xFF,0xFF,0x00,0x00,0x50); //fill first 8 locatio
 
 
 
+
+//---------------------------------EEPROM READ-----------------------------------------//
+unsigned char eeprom_read(unsigned char direccion){
+    EEADR = direccion;      //direccion de la eeprom que se quiere leer
+    EECON1bits.EEPGD = 0;   //para acceder a la memoria EEPROM PIC
+    EECON1bits.RD = 1;      //habilita la lectura de la EEPROM PIC
+    return EEDATA;        //en el registro EEDATA se encuentra el dato
+}
+
+//---------------------------------EEPROM WRITE-----------------------------------------//
+
+void eeprom_write(char Address, char Data)
+{
+   
+   EECON1bits.WR==1;  //mientras se esté realizando alguan escritura
+                                      //anterior espera
+    EEADR=Address;          //se carga la dirección donde se quiere escribir
+    EEDATA=Data;              //se carga el dato que se quiere escribir
+    EECON1bits.EEPGD=0;       //para acceder a la memoria EEPROM PIC
+    EECON1bits.WREN=1;        //habilita la escritura en la EEPROM PIC
+    INTCONbits.GIE=0;         //deshabilita las interrupciones
+    EECON2=0x55;              //cargar en EECON2 0x55
+    EECON2=0xaa;              //cargar en EECON2 0xaa
+    EECON1bits.WR=1;          //inicia la escritura en la EEPROM PIC
+    INTCONbits.GIE=1;         //habilita las interrupciones
+    EECON1bits.WREN=0;        //deshabilita la escritura en la EEPROM PIC
+    while(EECON1bits.WR==1);  //mientras se esté realizando la escritura espera
+   
+      
+}
 
 
 //---------------------------CHECK SUM--------------------------------//
@@ -50,17 +83,99 @@ void limpiar_dato(void){
     
 }
 
+void limpiar_cmd(void){
+    
+    for(int j = 0; j < 8; j++) {
+        cmd[j] = 0;          
+    }
+    
+}
+
+ //int pep =100000;
+ //int  precio_lote;
+// int  precio=0;
 //-------------------- INTERRUPTION MANAGER--------------------------//
 void __interrupt () int_usart(void) {
     
+  //Se genera una interrupcion debido a baja en tension de la fuente. 
+   if( INTF == 1 ) {
+      
+      //Activa la bandera de finalizacion del programa.
+      finalizar = TRUE;
+      //Baja la bandera de la interrupcion.
+      INTF = 0;
+      //Guardo el precio total
+ 
+  int  precio_lote = lote.precio_total;
+     eeprom_write(105, (char) (precio_lote/100000));
+    precio_lote=precio_lote%100000;
+     eeprom_write(104, (char) (precio_lote/10000));
+     precio_lote=precio_lote%10000;
+     eeprom_write(103, (char) (precio_lote/1000));
+     precio_lote=precio_lote%1000;
+     eeprom_write(102, (char) (precio_lote/100));
+      precio_lote=precio_lote%100;
+      eeprom_write(101, (char) (precio_lote/10));
+      precio_lote=precio_lote%10;
+    eeprom_write(100, (char) precio_lote);
+/*
+      pep=100000;
+      precio_lote = lote.precio_total;
+	
+      for (char l = 0 ; l < 6 ; l++){
+	 
+	 eeprom_write(105-l,  (precio_lote/pep));
+	 precio_lote = precio_lote % pep;
+	 
+	 pep=pep/10;
+	 
+      }
+      */
+      
+      //Guardo numero de lote.
+       eeprom_write(106, lote.numero);
+      //Guardo cant sesiones
+       eeprom_write(107, lote.cant_ventas);
+       //Activo flag para levantar datos
+       eeprom_write(108, TRUE);
+     
+
+      
+   }
+   
+   //Ocurre una interrupcion por el timer
+   if ( TMR1IF == TRUE ){
+      
+      //Limpia el valor del timer
+      TMR1H = 0;
+      TMR1L = 0;
+     
+      //Si ya sucedio un overflow dos veces, entonces paso el tiempo suficiente.
+      if(timer_overflow == 2){
+	    //Se activa la bandera indicando que se cronometro el tiempo deseado
+	    paso_segundo = TRUE;
+	    //Se limpia el contador de overflows
+	    timer_overflow = 0;
+      } else {
+	 //Si no sucedeio la cantidad necesaria, aumento el overlfow counter.
+	  timer_overflow++;	 
+      }
+      
+      //Bajo la bandera de interrupcion por timer.
+      TMR1IF = FALSE;
+      
+   }
  
     //Me fijo si la interrupcion es por Recepcion serial RX
-    if(PIR1bits.RCIF == TRUE) {
+    if(PIR1bits.RCIF == TRUE  && FERR  != TRUE && OERR  != TRUE) {
        
+       //Para el primer dato diferencio el caso numerico de las letras
        if (i == 0){
 	  
+	  //Si es numerico indico que el dato debe ser procesado como codigo de barras.
 	  if( RCREG > 47 && RCREG < 58 ){
 	       es_cmd = FALSE;
+	  //De lo contrario se procesa como comando.
 	  } else {
 	       es_cmd = TRUE;
 		
@@ -68,6 +183,7 @@ void __interrupt () int_usart(void) {
 	  
        }
        
+       //Caso codigo de barras
        if (es_cmd == FALSE){
 	  
 	    //Verifico si llego el final del dato
@@ -112,63 +228,36 @@ void __interrupt () int_usart(void) {
 		   
 
        }else{
-	  
-	  
+	  //Mientras que haya espacio en el buffer
 	  if (i < 8){
 	     
+	     //Si se termina el comando.
 	       if(RCREG == CR || RCREG == LF){
 		  
-		  if(TRUE == TRUE){
+		 // if(TRUE == TRUE){
+		  //Guardo el enter y activo la bandera de nuevo codigo.
 		     cmd[i] = RCREG;
 		     cmd_recibido = TRUE;
+		  //Reinicio el contador de datos.
 		     i = 0;
-		  }else{
-		    i = 0;
-		 //   limpiar_cmd();
-		  }  
+		
+	    //Si no llego el final se guarda el dato.
 	       }else{
 		  cmd[i] = RCREG;
 		  i++;
 	       }  
-		 
+	
+	//Si el supuesto comando posee mas de 8 caracteres  
 	  }else{
-	     i  = 0;
-	  //   limpiar_cmd(); 
+	  //Se limpia el comando y se reinicia el contador.
+	    i  = 0;
+	   limpiar_cmd(); 
 	  }  
       }
        
     }
 
 } 
-
-
-
-
-//---------------------------------EEPROM READ-----------------------------------------//
-unsigned char eeprom_read(unsigned char direccion){
-    EEADR = direccion;      //direccion de la eeprom que se quiere leer
-    EECON1bits.EEPGD = 0;   //para acceder a la memoria EEPROM PIC
-    EECON1bits.RD = 1;      //habilita la lectura de la EEPROM PIC
-    return EEDATA;        //en el registro EEDATA se encuentra el dato
-}
-
-//---------------------------------EEPROM READ-----------------------------------------//
-
-void eeprom_write(char Address, char Data)
-{
-  while(EECON1bits.WR);  // Waits Until Last Attempt To Write Is Finished
-  EEADR = Address;       // Writes The Addres To Which We'll Wite Our Data
-  EEDATA = Data;         // Write The Data To Be Saved
-  EECON1bits.EEPGD = 0;  // Cleared To Point To EEPROM Not The Program Memory
-  EECON1bits.WREN = 1;   // Enable The Operation !
-  INTCONbits.GIE = 0;    // Disable All Interrupts Untill Writting Data Is Done
-  EECON2 = 0x55;         // Part Of Writing Mechanism..
-  EECON2 = 0xAA;         // Part Of Writing Mechanism..
-  EECON1bits.WR = 1;     // Part Of Writing Mechanism..
-  INTCONbits.GIE = 1;    // Re-Enable Interrupts
-  EECON1bits.WREN = 0;   // Disable The Operation
-  EECON1bits.WR = 0;     // Ready For Next Writting Operation
-}
   
 //------------------------------------------------------------------------------------------------------------//
 
@@ -246,7 +335,7 @@ void agregar_dato(void){
         for (int j = 0; j < 8; j++){
             
             lista[cantidad_items].dato[j] = dato[j];
-        
+	 
         }
    
 }    
@@ -284,8 +373,8 @@ void display_numero(int numero){
     int decimas=numero-decenas*100-unidades*10;
     
     //Asigno la representacion del numero en 7 segmentos al puerto correspondiente.     
-    PORTD = ~seg[decimas];
-    PORTB = decenas+unidades*16;      
+    PORTD = decimas * 16 + unidades;
+    PORTB = decenas * 16;
 }
 
 //----------REMOVE LAST ITEM---------------//
@@ -304,33 +393,23 @@ void eliminar_item(){
         precio_actual=precio_item_actual;
        
 	//Led verde.
-       RA3 = 1;
-       __delay_ms(500);
-       RA3 = 0;
-       __delay_ms(500);
+       encender_verde();
         
     //Si no hay items da error.    
     }else{ 
         //Led rojo de error
-        RA0=1;
-        __delay_ms(500);
-        RA0=0;
+        encender_rojo();
     }    
     
 }    
-
 
 //-------------CLOSE CART ANIMATION---------------//
 //Genera una animacion al momento de cerrar el carrito.
 void animacion_pagar(){
    
    for(int j=0; j<3;j++){
-    RA3=1;
-    __delay_ms(300);
-    RA3=0;
-    RA0=1;
-    __delay_ms(300);
-    RA0=0;
+    encender_verde();
+    encender_rojo();
    }
     
 }   
@@ -350,33 +429,18 @@ int actualizar_lote( int precio){
    
  }
 
+ //-----------------------------DATA TRANSMISION------------------------------------//
  
- //-----------------------LEDS----------------------------------//
-  void encender_verde(){
-    RA3=1;
-    __delay_ms(300);
-    RA3=0;
-    
- }
- 
-  void encender_rojo(){
-     
-     RA4=1;
-    __delay_ms(300);
-    RA4=0;
-    
- }
-
- 
- 
+ //Envio de un caracter.
  void envia_caracter_usart(unsigned char caracter){
     while(TXSTAbits.TRMT==0);// mientras el registro TSR esté lleno espera
 	TXREG = caracter;//cuando el el registro TSR está vacio se envia el caracter
 }
+
+//Transmision de un string.
 void cmd_printf(const char *s) {
    
    int h = 0;
-   
    
    while(s[h] != 0 && h < CMD_SIZE) {
 	 
@@ -385,29 +449,68 @@ void cmd_printf(const char *s) {
       
    }
 	 
-   
 }
 
 
-//-----------------------------------------------------------------------------------------------------------------//
+//---------------TIMER INITIALIZER----------------//
+void setup_timer(void){
+   
+    T1CON = (1<<SBIT_PS1) | (1<<SBIT_PS0); // Timer0 with external freq and 8 as prescalar
+    TMR1H=0x0;     // Load the time value(0xBDC) for 100ms delay
+    TMR1L=0x0;       
+    TMR1IE=1;       //Enable timer interrupt bit in PIE1 register
+    GIE=1;          //Enable Global Interrupt
+    PEIE=1;         //Enable the Peripheral Interrupt       
+  
+}
 
-    
+
+//--------------OBTENER PRECIO EEPROM-----------------------//
+int obtener_precio_EEPROM(){
+   
+ //  int precio= eeprom_read(100);
+ //  precio +=((int) eeprom_read(101)) * 10;
+ //  precio += ((int) eeprom_read(102)) *100;
+ //  precio += ((int) eeprom_read(103)) *1000;
+   //precio += ((int) eeprom_read(104)) *10000;
+  // precio += ((int) eeprom_read(105)) *100000;
+   
+      int precio = 0;
+      int aux = 1;
+      
+      for (char p=0; p < 6 ; p++){
+	 
+	 precio += ((int) eeprom_read(100+p))*aux;
+	 aux*=10;
+	  
+      }
+      
+   
+   
+   return precio;
+   
+} 
+
+
 //------------SETUPS---------//
 void setup(void) {
     
     //---Displays----//
     
     //Decenas
-    TRISB = 0x0;
+    TRISB = 0x0F;
     
     //Unidades
     TRISD = 0x0;
     
-    ADCON1 = 0b1110;
+    //ADCON1 = 0b1110;
    
     //Botones
-    TRISA = 0b00110;
-    
+    TRISA = 0b100111;
+   
+     ADC_Initialize();
+   
+     TRISE = 0x0;
     
     //----Serial----//
     
@@ -426,33 +529,55 @@ void setup(void) {
     
     PIE1bits.RCIE = 1; //Habilita interrupcion serial de recepcion en perisferico RX
     
+    INTE = 1;       //Enable RB0 as external Interrupt pin
+    
+    //Si no hubo una falla de voltaje
+    if ( eeprom_read(108) == FALSE){
+       //Inicializo en 0 los valores del lote.
+       lote.numero = 5;
+       lote.cant_ventas = 0;
+       lote.precio_total = 0;
+    //Si hubo una falla de voltaje
+    }else{
+       //Levanto de memoria los valores del lote.
+       eeprom_write(108, FALSE);
+       lote.numero = eeprom_read(106) ;
+       lote.cant_ventas = eeprom_read(107) ;
+       lote.precio_total = obtener_precio_EEPROM();
+       
+      
+    }  
+    
+    char string[2];
+     string[0] = lote.numero + 48;
+     string[1] = 0;
+     cmd_printf(string);
+    
+    //Siempre se inicia una nueva compra, no guarda el carrito.
     display_numero(0);
     
-    lote.numero = 5;
-    lote.cant_ventas = 0;
-    lote.precio_total = 0;
+    setup_timer();
     
 }
    
 
 int main(void) {
-    
+   
     setup();
-    //AUXILIAR PARA GENERAR ITEMS
-    int r = 0;
     //----------//
      //Variables para almacenar el resultado de las condiciones. 
     int condicion_elemento_repetido = FALSE;
     int condicion_precio_max = FALSE;
   
-
+    RE0 = 0;
    
-    while(TRUE) {
+    while(finalizar == FALSE) {
  
 	 //Si se obtiene un nuevo dato serial.
       if(dato_recibido == TRUE) {
 	 
 	     estado = ACTIVO;
+	     
            	    
 	    //Chequea si el item es valido, no esta repetido y su precio al ser sumado no supera los 99.9$
             precio_actual = check_tt(NULL);
@@ -462,6 +587,7 @@ int main(void) {
              //	Si cumplen todas las condiciones anteriores. 
             if(condicion_elemento_repetido && condicion_precio_max && agregar_lista()) {
              
+		  //Si se esta en modo debug, se avisa al administrador la lectura de un nuevo codigo.
 		  if(modo == DEBUG) {
 		     cmd_etiqueta();
 		     cmd_printf(respuesta);
@@ -483,13 +609,12 @@ int main(void) {
             }else {
                 
                 //Led rojo de error
-                RA0 = 1;
+                RE0 = 1;
                 __delay_ms(500);
-                RA0 = 0;
+                RE0 = 0;
             }    
             
             dato_recibido = FALSE;
-            r++;
                
         }        
         
@@ -516,14 +641,19 @@ int main(void) {
             
             __delay_ms(50);
 	    
+	    //Si cuando se actualiza el lote se sobrepasan las 255 sesiones
 	    if (actualizar_lote(precio_total) == FALSE){
-	       //PRENDO LED ROJO
+	       //Enciende led rojo avisando al usuario.
+	       encender_rojo();
 	       
+	    //Si la cantidad de sesiones esta dentro del limita    
 	    } else {
+	       //Si se esta en modo debug se avisa el cierre de carrito.
 	       if(modo == DEBUG){
 		  cmd_lote();
 		  cmd_printf(respuesta);
 	       }
+	       //Se indica al usuario el exito de la transaccion 
 	        animacion_pagar();
 	    }
             
@@ -532,18 +662,70 @@ int main(void) {
             cantidad_items = 0;
             //Resetea el display.
             display_numero(precio_total);
-
 	     estado = ESPERA;
-            
+       
+	//Si se recibe un comando debe de ser administrado.
         }else if(cmd_recibido == TRUE){  
-	        
+	        //Se crea la respuesta apropiada para el pedido y es enviada al admin
 	       administrar_cmd();
 	       cmd_printf(respuesta);	
+	       //Se baja la bandera, indicando que ya fue procesado el comando.
+	       cmd_recibido = FALSE;
+	
+	 //Si se cierra el lote debe de ser administrado.   
+	} else if(RA5 == TRUE) {
 	   
-		 cmd_recibido = FALSE;
-	} 
+	   while(RA5) {
+                
+            }
+            
+            __delay_ms(50);
+	    
+	    //Genera el mensaje de cierre de lote.
+	    if (lote.numero < 255){
+	       cmd_cierre_lote();
+	       //administrar_cmd();
+	       //Transmite el mismo.
+	       cmd_printf(respuesta);
+	      
+
+	       //Inicializa el conteo de tiempo.
+	       if(TMR1ON == FALSE){
+		   espero_respuesta = TRUE;
+		  //Activa el timer y la flag de esperar respuesta.
+		  TMR1ON = TRUE;
+		  //cmd_printf("Prendi Timer");
+	       }
+	       
+	    }else{
+	       	   encender_rojo();	
+	    }
+	
+	//Si se esta esperando respuesta y paso el tiempo limite se muestra la falla.    
+	} else if( espero_respuesta == TRUE  && paso_segundo == TRUE ){
+	   
+	   //Desactivo las banderas de esperar respuesta.
+	   espero_respuesta = FALSE;
+	   //Reinicio el valor de control de tiempo.
+	   paso_segundo = FALSE;
+	   //Apago y reinicio los valores del timer.
+	   TMR1H = 0;
+	   TMR1L = 0;
+	   TMR1ON = FALSE;
+	   //avisa al usuario de error.
+	   encender_rojo();	
+	   
+	}  
              
     }
+    
+    //Si sale del while es porque hubo falla en la fuente, si da la energia se avisa con un parpadeo del led rojo.
+    
+     encender_verde();
+     encender_rojo();
+    
+  
+
     
     return 0;
 }

@@ -20,6 +20,8 @@
 #define MAX_CART 10
 #define MAX_BILL 999
 
+#define LED_TIME 250
+
 
 //-----EEPROM-----//
 
@@ -87,5 +89,15 @@ int estado = ESPERA;
 int modo = NO_DEBUG;
 
 float v = 9.0f;
+
+int cerro_lote = FALSE;
+int finalizar_cierre = FALSE;
+
+int timer_overflow = 0;
+int espero_respuesta = FALSE;
+int paso_segundo = FALSE;
+
+int finalizar = FALSE;
+
 
 #endif	/* CONSTANTES_H */
