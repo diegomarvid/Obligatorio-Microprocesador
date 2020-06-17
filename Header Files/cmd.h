@@ -130,7 +130,7 @@ void cmd_estado(){
 	 respuesta[13] = 0;
 	    
       } else {
-	  respuesta[0] = 'S';
+	 respuesta[0] = 'S';
 	 respuesta[1] = 'e';
 	 respuesta[2] = 's';
 	 respuesta[3] = 'i';
