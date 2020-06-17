@@ -10,7 +10,7 @@
 
 
 
-__EEPROM_DATA(0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x0A); //fill first 8 locations
+__EEPROM_DATA(0xFF,0xFF,0xFF,0xFF,0xFF,0x1,0xFF,0x0A); //fill first 8 locations
 __EEPROM_DATA(0x30,0x01,0xFF,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
@@ -19,10 +19,6 @@ __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x20,0x00,0x10,0x00,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x01,0x00,0x50,0x00,0x60,0x00,0x00); //fill first 8 locations
 __EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-
-//__EEPROM_DATA(0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00); //fill first 8 locations
-//__EEPROM_DATA(0x30,0x00,0x00,0x45,0x00,0x00,0x00,0x50); //fill first 8 locations
-//__EEPROM_DATA(0x30,0x00,0x00,0xFF,0xFF,0x00,0x00,0x50); //fill first 8 locatio
 
 
 
@@ -91,9 +87,8 @@ void limpiar_cmd(void){
     
 }
 
- //int pep =100000;
- //int  precio_lote;
-// int  precio=0;
+
+char x;
 //-------------------- INTERRUPTION MANAGER--------------------------//
 void __interrupt () int_usart(void) {
     
@@ -105,33 +100,21 @@ void __interrupt () int_usart(void) {
       //Baja la bandera de la interrupcion.
       INTF = 0;
       //Guardo el precio total
- 
-  int  precio_lote = lote.precio_total;
-     eeprom_write(105, (char) (precio_lote/100000));
-    precio_lote=precio_lote%100000;
+      PORTB=0xFF;
+      PORTD=0xFF;
+      
+      //Guarda en memoria el precio del lote actual
+     int  precio_lote = lote.precio_total;
      eeprom_write(104, (char) (precio_lote/10000));
      precio_lote=precio_lote%10000;
      eeprom_write(103, (char) (precio_lote/1000));
      precio_lote=precio_lote%1000;
      eeprom_write(102, (char) (precio_lote/100));
-      precio_lote=precio_lote%100;
-      eeprom_write(101, (char) (precio_lote/10));
-      precio_lote=precio_lote%10;
-    eeprom_write(100, (char) precio_lote);
-/*
-      pep=100000;
-      precio_lote = lote.precio_total;
-	
-      for (char l = 0 ; l < 6 ; l++){
-	 
-	 eeprom_write(105-l,  (precio_lote/pep));
-	 precio_lote = precio_lote % pep;
-	 
-	 pep=pep/10;
-	 
-      }
-      */
-      
+     precio_lote=precio_lote%100;
+     eeprom_write(101, (char) (precio_lote/10));
+     precio_lote=precio_lote%10;
+     eeprom_write(100, (char) precio_lote);
+ 
       //Guardo numero de lote.
        eeprom_write(106, lote.numero);
       //Guardo cant sesiones
@@ -167,8 +150,10 @@ void __interrupt () int_usart(void) {
    }
  
     //Me fijo si la interrupcion es por Recepcion serial RX
-    if(PIR1bits.RCIF == TRUE  && FERR  != TRUE && OERR  != TRUE) {
-       
+    if(PIR1bits.RCIF) {
+     
+    if(FERR  != TRUE ) {
+      
        //Para el primer dato diferencio el caso numerico de las letras
        if (i == 0){
 	  
@@ -255,7 +240,13 @@ void __interrupt () int_usart(void) {
 	  }  
       }
        
+    }else{
+        x=RCREG;
+	es_cmd = FALSE;
+        dato_recibido = FALSE;
+        i = 0;
     }
+ }
 
 } 
   
@@ -418,7 +409,7 @@ void animacion_pagar(){
 //------------------------------LOTES---------------------------------//
 int actualizar_lote( int precio){
    
-   if(lote.cant_ventas < 255){
+   if(lote.cant_ventas < 60){
       lote.precio_total += precio;
       lote.cant_ventas++;
       return TRUE;
@@ -468,24 +459,17 @@ void setup_timer(void){
 //--------------OBTENER PRECIO EEPROM-----------------------//
 int obtener_precio_EEPROM(){
    
- //  int precio= eeprom_read(100);
- //  precio +=((int) eeprom_read(101)) * 10;
- //  precio += ((int) eeprom_read(102)) *100;
- //  precio += ((int) eeprom_read(103)) *1000;
-   //precio += ((int) eeprom_read(104)) *10000;
-  // precio += ((int) eeprom_read(105)) *100000;
-   
+
       int precio = 0;
       int aux = 1;
       
-      for (char p=0; p < 6 ; p++){
+      for (char p=0; p < 5 ; p++){
 	 
 	 precio += ((int) eeprom_read(100+p))*aux;
 	 aux*=10;
 	  
       }
       
-   
    
    return precio;
    
@@ -498,12 +482,11 @@ void setup(void) {
     //---Displays----//
     
     //Decenas
-    TRISB = 0x0F;
+    //TRISB = 0x0F;
+   TRISB=0b1;
     
     //Unidades
     TRISD = 0x0;
-    
-    //ADCON1 = 0b1110;
    
     //Botones
     TRISA = 0b100111;
@@ -534,7 +517,7 @@ void setup(void) {
     //Si no hubo una falla de voltaje
     if ( eeprom_read(108) == FALSE){
        //Inicializo en 0 los valores del lote.
-       lote.numero = 5;
+       lote.numero = 0;
        lote.cant_ventas = 0;
        lote.precio_total = 0;
     //Si hubo una falla de voltaje
@@ -544,19 +527,15 @@ void setup(void) {
        lote.numero = eeprom_read(106) ;
        lote.cant_ventas = eeprom_read(107) ;
        lote.precio_total = obtener_precio_EEPROM();
-       
-      
+          
     }  
-    
-    char string[2];
-     string[0] = lote.numero + 48;
-     string[1] = 0;
-     cmd_printf(string);
-    
+
     //Siempre se inicia una nueva compra, no guarda el carrito.
     display_numero(0);
-    
+   
     setup_timer();
+    
+       RE0 = 0;
     
 }
    
@@ -569,9 +548,15 @@ int main(void) {
     int condicion_elemento_repetido = FALSE;
     int condicion_precio_max = FALSE;
   
-    RE0 = 0;
+ 
+   
    
     while(finalizar == FALSE) {
+       
+       if (OERR == TRUE ){
+	  CREN=0;
+	  CREN=1;
+       }
  
 	 //Si se obtiene un nuevo dato serial.
       if(dato_recibido == TRUE) {
@@ -667,6 +652,7 @@ int main(void) {
 	//Si se recibe un comando debe de ser administrado.
         }else if(cmd_recibido == TRUE){  
 	        //Se crea la respuesta apropiada para el pedido y es enviada al admin
+	       encender_azul();
 	       administrar_cmd();
 	       cmd_printf(respuesta);	
 	       //Se baja la bandera, indicando que ya fue procesado el comando.
@@ -684,7 +670,7 @@ int main(void) {
 	    //Genera el mensaje de cierre de lote.
 	    if (lote.numero < 255){
 	       cmd_cierre_lote();
-	       //administrar_cmd();
+	      
 	       //Transmite el mismo.
 	       cmd_printf(respuesta);
 	      
@@ -694,7 +680,7 @@ int main(void) {
 		   espero_respuesta = TRUE;
 		  //Activa el timer y la flag de esperar respuesta.
 		  TMR1ON = TRUE;
-		  //cmd_printf("Prendi Timer");
+		 
 	       }
 	       
 	    }else{
@@ -718,13 +704,6 @@ int main(void) {
 	}  
              
     }
-    
-    //Si sale del while es porque hubo falla en la fuente, si da la energia se avisa con un parpadeo del led rojo.
-    
-     encender_verde();
-     encender_rojo();
-    
-  
 
     
     return 0;

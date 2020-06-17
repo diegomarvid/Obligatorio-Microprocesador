@@ -118,24 +118,23 @@ void generar_cmd(int r){
    
 	       if( r % 5 == 0 ) {
 		  
-		  sprintf( cmd, "+D\r" );
+		  sprintf( cmd, "?L\r" );
 		 	  
 	       } else if ( r % 5 == 1) {
 		  
-		    sprintf( cmd, "-D\r" );
+		      sprintf( cmd, "?L\r" );
 		  // inicie_cierre = TRUE;
 	       } else if ( r % 5 == 2) {
 		  
-		     sprintf( cmd, "+L\r" );
+		       sprintf( cmd, "?L\r" );
 		  
 	       } else if ( r % 5 == 3) {
 		  
-		    sprintf( cmd, "+L\r" );
+		  sprintf( cmd, "?L\r" );
 		  
 	       } else if ( r % 5 == 4) {
 		  
-		  sprintf( cmd , "-D\r" );
-		  
+		 sprintf( cmd, "?01\r" );
 	       }
 	
     

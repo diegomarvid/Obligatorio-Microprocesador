@@ -50,7 +50,7 @@ typedef struct {
 
    char cant_ventas;
    char numero;
-   int precio_total; 
+    unsigned int precio_total; 
 
 } Lote;
 

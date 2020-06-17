@@ -3,13 +3,12 @@
 #define CMD_H
 
 #include "constantes.h"
-//#include <stdio.h>
-char help[6];
+char help[5];
 
-void separar_int(int numero){
+
+// Funcion para convertir un int a varios char
+void separar_int(unsigned int numero){
    
-   help[5] = numero/100000;  
-   numero=numero%100000;
    
      help[4] = numero/10000;
      numero=numero%10000;
@@ -42,6 +41,14 @@ void separar_int(int numero){
     
  }
 
+ 
+   void encender_azul(){
+     
+     RB1 = 1;
+    __delay_ms(LED_TIME);
+    RB1 = 0;
+    
+ }
  //----------------------------------------------------------------------//
 
 
@@ -64,7 +71,7 @@ void cmd_etiqueta(){
 
 void cmd_inicio_debug() {
    
-     //sprintf( respuesta, "Se inicio modo Debug" );
+
    respuesta[0] = 'S';
    respuesta[1] = 'e';
    respuesta[2] = ' ';
@@ -93,7 +100,7 @@ void cmd_inicio_debug() {
 
 void cmd_fin_debug(){
    
-    ///  sprintf( respuesta, "D=0" );
+
       respuesta[0] = 'D';
    respuesta[1] = '=';
    respuesta[2] = '0';
@@ -106,7 +113,7 @@ void cmd_estado(){
       
       if(estado == ACTIVO) {
 	    
-	 //   sprintf(respuesta, "Sesion activa");
+
 	  respuesta[0] = 'S';
 	 respuesta[1] = 'e';
 	 respuesta[2] = 's';
@@ -141,7 +148,7 @@ void cmd_estado(){
 	 respuesta[15] = 'a';
 	 respuesta[16] = 0; 
 	 
-	//    sprintf(respuesta, "Sesion en espera");
+
 	 
       }
    
@@ -149,8 +156,7 @@ void cmd_estado(){
 
 //-----------------------INFO LOTE----------------------------//
 void cmd_lote(){
-   
-  //    sprintf( respuesta, "L=%i;N=%i;T=%i", (int) lote.numero, (int) lote.cant_ventas, lote.precio_total );
+
    	  respuesta[0] = 'L';
 	 respuesta[1] = '=';
 	 separar_int((int) lote.numero);
@@ -172,13 +178,12 @@ void cmd_lote(){
 	 respuesta[13] = '=';
          separar_int(lote.precio_total);
 	 
-	 respuesta[14] = help[5]+48;
-	 respuesta[15] =  help[4]+48;
-	respuesta[16] =  help[3]+48;
-	 respuesta[17] =  help[2]+48;
-	 respuesta[18] =  help[1]+48;
-	 respuesta[19] = help[0]+48;
-	 respuesta[20] = 0;
+	 respuesta[14] =  help[4]+48;
+	respuesta[15] =  help[3]+48;
+	 respuesta[16] =  help[2]+48;
+	 respuesta[17] =  help[1]+48;
+	 respuesta[18] = help[0]+48;
+	 respuesta[19] = 0;
    
 }
 
@@ -195,7 +200,6 @@ void cmd_precio(int tt, char T1, char T2){
 	 respuesta[6] = help[0]+48;
    	 respuesta[7] = 0;
    
-     // sprintf( respuesta, "P%i=%i", tt, (int) eeprom_read(tt) );
    
 }
 
@@ -210,7 +214,6 @@ void cmd_fuente(int v){
          respuesta[5] = help[0]+48;
    respuesta[6] = 0;
 
-    //  sprintf( respuesta, "Fuente=%.2f Volts", v );
    
 }
 
@@ -248,13 +251,12 @@ void cmd_cierre_lote(){
 	 
          separar_int(lote.precio_total);
 	 
-	 respuesta[21] = help[5]+48;
-	 respuesta[22] =  help[4]+48;
-	respuesta[23] =  help[3]+48;
-	 respuesta[24] =  help[2]+48;
-	 respuesta[25] =  help[1]+48;
-	 respuesta[26] = help[0]+48;
-	 respuesta[27] = 0;
+	 respuesta[21] =  help[4]+48;
+	respuesta[22] =  help[3]+48;
+	 respuesta[23] =  help[2]+48;
+	 respuesta[24] =  help[1]+48;
+	 respuesta[25] = help[0]+48;
+	 respuesta[26] = 0;
    
 }
 
@@ -336,6 +338,7 @@ void administrar_cmd(){
 	 
 	 cmd_precio(tt, cmd[1] , cmd[2] );
 	 
+	 
       }else{
 	 	 //LED ROJO; 
 		 encender_rojo();
@@ -354,29 +357,30 @@ void administrar_cmd(){
 	 
 	 if (espero_respuesta == TRUE){
 	    vaciar_respuesta();
+	    encender_verde();
 	 }else{
 	    cmd_cierre_lote();
+	
 	 }
 	 
-	 // sprintf(respuesta, "");
-	//  finalizar_cierre = TRUE;
 	 if (lote.numero < 255){
 	    
 	     lote.numero++;
-	     lote.cant_ventas = 0;
-	     lote.precio_total = 0;
-	    encender_verde();
-	 } else {
 	    
-	    encender_rojo();	
 	    
-	 }
-	 	 
-	 espero_respuesta == FALSE;
+	 } else if(lote.numero == 255){
+	    
+	    lote.numero = 0;
+
+	 } 
+	 
+
+	 lote.cant_ventas = 0;
+	 lote.precio_total = 0;
+	 espero_respuesta = FALSE;
 	 TMR1H = 0;
 	 TMR1L = 0;
 	 TMR1ON = FALSE;
-	 //Led VERDE;
 	 
 	 
 	//+D 

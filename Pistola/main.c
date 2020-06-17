@@ -31,25 +31,22 @@ void envia_caracter_usart(unsigned char caracter){
 ///////////////////////////////////////////////
 //transmisión de cadenas de caracteres con el módulo USART PIC modo asíncrono
 ///////////////////////////////////////////////
-void envia_cadena_usart(char* dato){//cadena de caracteres de tipo char
-    for(int i = 0; i< 9; i++){
+/*void envia_cadena_usart(char* dato){//cadena de caracteres de tipo char
+    for(int i = 0; i < 9; i++){
         envia_caracter_usart(*(dato + i));//transmite los caracteres de cadena       
     }
-}
+}*/
 
-void cmd_printf(const char *s) {
+void envia_cadena_usart(const char *s) {
    
    int i = 0;
-   
    
    while(s[i] != 0 && i < CMD_SIZE) {
 	 
       envia_caracter_usart(s[i]);
       i++;
-      
    }
 	 
-   
 }
 
 //--------------------------------------GENERAR DATO-------------------------------------------------------//
@@ -58,7 +55,7 @@ void cmd_printf(const char *s) {
 #define LF 0x0A
 char dato[9];
 
-const char d1[9] = "01PILAS4\r";
+const char d1[11] = "01PILAS4\r";
 const char d2[9] = "02JAMON1\r";
 const char d3[9] = "03CARNE0\r";
 const char d4[9] = "04VODKA3\r";
@@ -71,7 +68,7 @@ void generar_dato(int r){
         
         if(r % 5 == 0){
 
-            for (int j = 0; j < 9; j++){
+            for (int j = 0; j < 11; j++){
                 
                 dato[j] = d1[j];
             
