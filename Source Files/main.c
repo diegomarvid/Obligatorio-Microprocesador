@@ -35,10 +35,10 @@ unsigned char eeprom_read(unsigned char direccion){
 
 void eeprom_write(char Address, char Data)
 {
-   
-   EECON1bits.WR==1;  //mientras se estÈ realizando alguan escritura
+   while(EECON1bits.WR==1);  //mientras se est√© realizando la escritura espera
+   EECON1bits.WR==1;  //mientras se est√© realizando alguan escritura
                                       //anterior espera
-    EEADR=Address;          //se carga la direcciÛn donde se quiere escribir
+    EEADR=Address;          //se carga la direcci√≥n donde se quiere escribir
     EEDATA=Data;              //se carga el dato que se quiere escribir
     EECON1bits.EEPGD=0;       //para acceder a la memoria EEPROM PIC
     EECON1bits.WREN=1;        //habilita la escritura en la EEPROM PIC
@@ -48,7 +48,7 @@ void eeprom_write(char Address, char Data)
     EECON1bits.WR=1;          //inicia la escritura en la EEPROM PIC
     INTCONbits.GIE=1;         //habilita las interrupciones
     EECON1bits.WREN=0;        //deshabilita la escritura en la EEPROM PIC
-    while(EECON1bits.WR==1);  //mientras se estÈ realizando la escritura espera
+    while(EECON1bits.WR==1);  //mientras se est√© realizando la escritura espera
    
       
 }
@@ -424,8 +424,8 @@ int actualizar_lote( int precio){
  
  //Envio de un caracter.
  void envia_caracter_usart(unsigned char caracter){
-    while(TXSTAbits.TRMT==0);// mientras el registro TSR estÈ lleno espera
-	TXREG = caracter;//cuando el el registro TSR est· vacio se envia el caracter
+    while(TXSTAbits.TRMT==0);// mientras el registro TSR est√© lleno espera
+	TXREG = caracter;//cuando el el registro TSR est√° vacio se envia el caracter
 }
 
 //Transmision de un string.
