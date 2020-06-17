@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-//Archivo de cabecera para el uso del mÛdulo USART PIC con el XC8///
+//Archivo de cabecera para el uso del m√≥dulo USART PIC con el XC8///
 ///////////////////////////////////////////////////////////////////
 
 #include <xc.h>
@@ -9,33 +9,29 @@
  #define CMD_SIZE 40
  
 ///////////////////////////////////////////////
-//inicializaciÛn del mÛdulo USART PIC modo asÌncrono
-//en una funciÛn, a 8bits,a 9600 baudios
+//inicializaci√≥n del m√≥dulo USART PIC modo as√≠ncrono
+//en una funci√≥n, a 8bits,a 9600 baudios
 /////////////////////////////////////////////////////
 void iniciar_usart(){
      TRISCbits.TRISC6 = 0;//pin TX como una salida digital
-     TXSTA=0b00100110;// 8bits, transmisiÛn habilitada, asÌncrono, alta velocidad
-     RCSTA=0b10010000;//habilitado el USART PIC, recepciÛn 8 bits,  habilitada, asÌncrono
+     TXSTA=0b00100110;// 8bits, transmisi√≥n habilitada, as√≠ncrono, alta velocidad
+     RCSTA=0b10010000;//habilitado el USART PIC, recepci√≥n 8 bits,  habilitada, as√≠ncrono
      SPBRG=25;//para una velocidad de 9600baudios con un oscilador de 4Mhz
 }
  
 ///////////////////////////////////////////////
-//transmisiÛn de datos del mÛdulo USART PIC modo asÌncrono
+//transmisi√≥n de datos del m√≥dulo USART PIC modo as√≠ncrono
 ///////////////////////////////////////////////
 void envia_caracter_usart(unsigned char caracter){
-    while(TXSTAbits.TRMT==0);// mientras el registro TSR estÈ lleno espera
-	TXREG = caracter;//cuando el el registro TSR est· vacio se envia el caracter
+    while(TXSTAbits.TRMT==0);// mientras el registro TSR est√© lleno espera
+	TXREG = caracter;//cuando el el registro TSR est√° vacio se envia el caracter
 }
  
  
 ///////////////////////////////////////////////
-//transmisiÛn de cadenas de caracteres con el mÛdulo USART PIC modo asÌncrono
+//transmisi√≥n de cadenas de caracteres con el m√≥dulo USART PIC modo as√≠ncrono
 ///////////////////////////////////////////////
-/*void envia_cadena_usart(char* dato){//cadena de caracteres de tipo char
-    for(int i = 0; i < 9; i++){
-        envia_caracter_usart(*(dato + i));//transmite los caracteres de cadena       
-    }
-}*/
+
 
 void envia_cadena_usart(const char *s) {
    
