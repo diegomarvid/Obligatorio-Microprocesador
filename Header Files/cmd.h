@@ -6,23 +6,23 @@
 char help[5];
 
 
-// Funcion para convertir un int a varios char
+// -----Funcion para convertir un int a varios char------//
 void separar_int(unsigned int numero){
    
    
-     help[4] = numero/10000;
-     numero=numero%10000;
+     help[4] = numero / 10000;
+     numero = numero % 10000;
    
-   help[3] =numero/1000;
-     numero=numero%1000;  
+     help[3] = numero / 1000;
+     numero = numero % 1000;  
    
-      help[2] = numero/100;
-      numero = numero%100;
+     help[2] = numero / 100;
+     numero = numero % 100;
    
-      help[1]=numero/10;
-      numero=numero%10; 
+     help[1] = numero / 10;
+     numero = numero % 10; 
    
-	help[0]= numero;
+     help[0] = numero;
    
 }
  //-----------------------LEDS----------------------------------//
@@ -101,7 +101,7 @@ void cmd_inicio_debug() {
 void cmd_fin_debug(){
    
 
-      respuesta[0] = 'D';
+   respuesta[0] = 'D';
    respuesta[1] = '=';
    respuesta[2] = '0';
    respuesta[3] = 0;
@@ -114,7 +114,7 @@ void cmd_estado(){
       if(estado == ACTIVO) {
 	    
 
-	  respuesta[0] = 'S';
+	 respuesta[0] = 'S';
 	 respuesta[1] = 'e';
 	 respuesta[2] = 's';
 	 respuesta[3] = 'i';
@@ -157,8 +157,9 @@ void cmd_estado(){
 //-----------------------INFO LOTE----------------------------//
 void cmd_lote(){
 
-   	  respuesta[0] = 'L';
+   	 respuesta[0] = 'L';
 	 respuesta[1] = '=';
+	 //Numero de lote
 	 separar_int((int) lote.numero);
    
 	 respuesta[2] = help[2]+48;
@@ -167,7 +168,8 @@ void cmd_lote(){
 	 respuesta[5] = ';';
 	 respuesta[6] = 'N';
 	 respuesta[7] = '=';
-   
+   		
+	 //Cantidad de ventas
    	 separar_int((int) lote.cant_ventas);
    
    	 respuesta[8] = help[2]+48;
@@ -176,10 +178,12 @@ void cmd_lote(){
 	 respuesta[11] = ';';
 	 respuesta[12] = 'T';
 	 respuesta[13] = '=';
+	
+	 //Precio de lote
          separar_int(lote.precio_total);
 	 
 	 respuesta[14] =  help[4]+48;
-	respuesta[15] =  help[3]+48;
+	 respuesta[15] =  help[3]+48;
 	 respuesta[16] =  help[2]+48;
 	 respuesta[17] =  help[1]+48;
 	 respuesta[18] = help[0]+48;
@@ -220,8 +224,7 @@ void cmd_fuente(int v){
 //-----------------------CIERRE LOTE----------------------------//
 void cmd_cierre_lote(){
    
-     // sprintf( respuesta, "Cierre,L=%i;N=%i;T=%i", (int) lote.numero, (int) lote.cant_ventas, lote.precio_total );
-   	  respuesta[0] = 'C';
+   	 respuesta[0] = 'C';
 	 respuesta[1] = 'i';
 	 respuesta[2] = 'e';
 	 respuesta[3] = 'r';
@@ -263,7 +266,6 @@ void cmd_cierre_lote(){
 //----------------------VACIAR RESPUESTA-----------------//
 void vaciar_respuesta(){
    
-     // sprintf( respuesta, "");
    for (int f = 0 ;f < CMD_SIZE; f++){
       respuesta[f] = 0;
    } 
@@ -327,9 +329,9 @@ void administrar_cmd(){
       //?V
       }else if(cmd[1] == 'V' && es_fin(cmd[2])){
 	 
-	 v = (ADC_Read(0) * 5) / 1023.0f;
+	 v = (ADC_Read(0) * 5) / 1023.0f; //Convertir bits a voltaje
 	 v *= 2; //Divisor de tension 1/2 1/2
-	 cmd_fuente((int)(v*100));
+	 cmd_fuente((int)(v*100)); //Se multiplica por 100 para obtener 3 cifras en la conversion a char
 	 
       //?26
       }else if(es_numero(cmd[1]) && es_numero(cmd[2]) && es_fin(cmd[3])){
@@ -354,7 +356,7 @@ void administrar_cmd(){
       //+L
       if(cmd[1] == 'L'  && es_fin(cmd[2])){
 	 
-	 
+	 //Si viene del boton de cierre forzado, no mandar mensaje al admin porque el +L es su respuesta ya
 	 if (espero_respuesta == TRUE){
 	    vaciar_respuesta();
 	    encender_verde();
