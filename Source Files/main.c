@@ -219,7 +219,6 @@ void __interrupt () int_usart(void) {
 	     //Si se termina el comando.
 	       if(RCREG == CR || RCREG == LF){
 		  
-		 // if(TRUE == TRUE){
 		  //Guardo el enter y activo la bandera de nuevo codigo.
 		     cmd[i] = RCREG;
 		     cmd_recibido = TRUE;
